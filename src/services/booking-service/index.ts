@@ -40,9 +40,24 @@ async function createBooking(userId: number, roomId: number) {
   const booking = await bookingRepository.createBooking(userId, roomId);
   return { bookingId: booking.id };
 }
+
+async function updateBookingRoom(userId: number, roomId: number, bookingId: number) {
+  const room = await hotelRepository.findRoomById(roomId);
+  if(!room) throw notFoundError();
+
+  const bookingList = await bookingRepository.findManyBookingsByRoomId(roomId);
+  if(bookingList.length === room.capacity) throw conflictError("Room occupied");
+
+  const booking = await bookingRepository.getBookingById(bookingId);
+  if(!booking || booking.userId !== userId ) throw conflictError("The user is not the booking owner");
+
+  await bookingRepository.updateBookingRoom(booking.id, roomId);
+  return { bookingId };
+}
 const bookingService = {
   getBooking,
-  createBooking
+  createBooking,
+  updateBookingRoom
 };
 
 export default bookingService;

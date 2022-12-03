@@ -40,7 +40,29 @@ async function createBooking(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+async function updateBookingRoom(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+
+  const roomId = Number(req.body.roomId);
+  if(!roomId || typeof(roomId) !== "number" || roomId <= 0) return res.sendStatus(httpStatus.FORBIDDEN);
+
+  const bookingId = Number(req.params.bookingId);
+  if(!bookingId || typeof(bookingId) !== "number" || bookingId <= 0) return res.sendStatus(httpStatus.FORBIDDEN);
+
+  try {
+    const updatedBookingId = await bookingService.updateBookingRoom(userId, roomId, bookingId);
+    return res.status(200).send(updatedBookingId);
+  } catch (error) {
+    if (error.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+    if (error.name === "ConflictError") {
+      return res.sendStatus(httpStatus.FORBIDDEN);
+    }
+  }
+}
 export {
   getBooking,
-  createBooking
+  createBooking,
+  updateBookingRoom
 };
